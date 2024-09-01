@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Negocios {
+  id                Int      @id @default(autoincrement())
+  name              String   // Nombre del negocio
+  picture           String?  // Foto del negocio (URL de la imagen)
+  description       String   // Descripción del negocio
+  phoneNumber       String?  // Número de teléfono
+  whatsappNumber    String?  // Número de WhatsApp
+  website           String?  // Dirección del sitio web
+  facebook          String?  // Cuenta de Facebook
+  instagram         String?  // Cuenta de Instagram
+  youtube           String?  // Cuenta de YouTube
+  category          String?  // Categoría
+  address           String?  // Dirección
+  googleMapsLink    String?  // Enlace de Google Maps (opcional, puede ser una URL completa)
+  createdAt DateTime @default(now())
+
+}

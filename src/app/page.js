@@ -34,7 +34,7 @@ export default function Home() {
   };
 
   const handleClick = () => {
-    router.push('/components/contactanos');
+    router.push('/components/annoucement');
   };
 
   const handleBusinessClick = (id) => {

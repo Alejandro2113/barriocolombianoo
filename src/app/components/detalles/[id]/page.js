@@ -1,26 +1,49 @@
 "use client";
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { MapPin, Phone, Globe, Facebook, Instagram, Youtube, MessageSquare, FileText, Tag, Map } from 'lucide-react';
 import Image from "next/image";
 import LOGO from "../../../../images/logo.png";
 
 export default function BusinessDetails() {
-  const { id } = useSearchParams(); // Correct hook usage
+  const router = useRouter();
+  const { id } = useParams();
 
   const [business, setBusiness] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("ID recibido:", id);
     if (id) {
-      fetch(`/api/businesses/${id}`) // Ruta correcta para la API
-        .then((response) => response.json())
-        .then((data) => setBusiness(data));
+      console.log("Haciendo fetch de los datos del negocio...");
+      fetch(`/api/businesses/${id}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch business data');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Datos del negocio recibidos:", data);
+          setBusiness(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching business data:', err);
+          setError(err.message);
+          setLoading(false);
+        });
     }
   }, [id]);
 
-  if (!business)
+  const handleClick = () => {
+    router.push('/components/contactanos');
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 md:p-8">
         <div className="flex flex-col items-center">
@@ -29,10 +52,40 @@ export default function BusinessDetails() {
         </div>
       </div>
     );
+  }
 
-  const handleClick = () => {
-    router.push('/components/contactanos'); // Redirige a la página de contacto
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700">{error}</p>
+          <button
+            onClick={() => router.push('/')}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700"
+          >
+            Volver a la página principal
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!business) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 md:p-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-700 mb-4">Negocio no encontrado</h2>
+          <button
+            onClick={() => router.push('/')}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700"
+          >
+            Volver a la página principal
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Suspense fallback={<div>Cargando...</div>}>
@@ -41,11 +94,11 @@ export default function BusinessDetails() {
         <header className="relative bg-gradient-to-r from-[#FFD700] to-[#003893] p-4 flex justify-between items-center">
           {/* Logo */}
           <div>
-            <Image src={LOGO} alt="Logo" className="h-15" /> {/* Ajusta la ruta de la imagen del logo */}
+            <Image src={LOGO} alt="Logo" width={100} height={50} />
           </div>
           {/* Botón de regresar */}
           <button
-            onClick={() => window.history.back()}
+            onClick={() => router.push('/')}
             className="ml-2 px-4 py-2 bg-[#fad039] text-white font-semibold rounded-md hover:bg-blue-800"
           >
             Página Principal
@@ -58,6 +111,8 @@ export default function BusinessDetails() {
               <Image
                 src={business.picture}
                 alt={business.name}
+                width={800}
+                height={400}
                 className="w-full h-60 object-cover"
               />
             )}
@@ -80,13 +135,30 @@ export default function BusinessDetails() {
                     {business.phoneNumber}
                   </p>
                 )}
-                {business.whatsappNumber && (
-                  <p className="flex items-center">
-                    <MessageSquare size={20} className="mr-3 text-green-600" />
-                    <span className="font-medium">WhatsApp:</span>{" "}
-                    {business.whatsappNumber}
-                  </p>
-                )}
+               {business.whatsappNumber && (
+  <p className="flex items-center">
+    <MessageSquare size={20} className="mr-3 text-green-600" />
+    <a
+      href={
+        business.whatsappNumber.includes("https://api.whatsapp.com/send/?")
+          ? `https://wa.me/${business.whatsappNumber.match(/phone=([0-9]+)/)[1]}` // Extrae el número de teléfono de la URL
+          : `https://wa.me/${business.whatsappNumber}` // Si ya es solo un número
+      }
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-green-600 hover:underline"
+    >
+      WhatsApp: {
+        business.whatsappNumber.includes("https://api.whatsapp.com/send/?")
+          ? business.whatsappNumber.match(/phone=([0-9]+)/)[1] // Muestra solo el número
+          : business.whatsappNumber.replace("https://wa.me/", "") // Si es solo un número
+      }
+    </a>
+  </p>
+)}
+
+
+
                 {business.address && (
                   <p className="flex items-center">
                     <MapPin size={20} className="mr-3 text-indigo-600" />
@@ -117,18 +189,17 @@ export default function BusinessDetails() {
                 <div className="flex space-x-4 mb-4 md:mb-0">
                   {business.website && (
                     <a
-                      href={business.website}
+                      href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-indigo-700 transition duration-300"
+                      className="text-gray-600 hover:text-[#003893] transition duration-300"
                     >
                       <Globe size={24} />
-                      <span className="sr-only">Sitio web</span>
                     </a>
                   )}
                   {business.facebook && (
                     <a
-                      href={business.facebook}
+                      href={business.facebook.startsWith('http') ? business.facebook : `https://${business.facebook}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-blue-700 transition duration-300"
@@ -139,7 +210,7 @@ export default function BusinessDetails() {
                   )}
                   {business.instagram && (
                     <a
-                      href={business.instagram}
+                      href={business.instagram.startsWith('http') ? business.instagram : `https://${business.instagram}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-pink-700 transition duration-300"
@@ -150,7 +221,7 @@ export default function BusinessDetails() {
                   )}
                   {business.youtube && (
                     <a
-                      href={business.youtube}
+                      href={business.youtube.startsWith('http') ? business.youtube : `https://${business.youtube}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-red-700 transition duration-300"
@@ -161,7 +232,7 @@ export default function BusinessDetails() {
                   )}
                 </div>
                 <button
-                  onClick={() => window.history.back()} // Usamos window.history.back() para retroceder
+                  onClick={() => router.back()}
                   className="bg-indigo-700 text-white px-4 py-2 rounded-lg hover:bg-indigo-800 transition duration-300"
                 >
                   Regresar

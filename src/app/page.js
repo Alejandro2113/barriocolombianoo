@@ -1,7 +1,4 @@
-// src/app/page.js
-
 "use client";
-
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -17,7 +14,13 @@ export default function Home() {
       try {
         const response = await fetch("/api/businesses");
         const data = await response.json();
-        setBusinesses(data);
+        // Filtrar solo los negocios destacados que tengan todos los campos requeridos
+        const featuredBusinesses = data.filter(business => 
+          business.featured && business.phoneNumber && business.address && business.website
+        );
+        // Ordenar los negocios destacados
+        const sortedBusinesses = featuredBusinesses.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        setBusinesses(sortedBusinesses);
       } catch (error) {
         console.error("Error fetching businesses:", error);
       }
@@ -31,7 +34,11 @@ export default function Home() {
   };
 
   const handleClick = () => {
-    router.push('/components/contactanos'); // Redirige a la página de contacto
+    router.push('/components/contactanos');
+  };
+
+  const handleBusinessClick = (id) => {
+    router.push(`/components/detalles/${id}`);
   };
 
   return (
@@ -62,7 +69,7 @@ export default function Home() {
 
         {/* Desktop Layout */}
         <div className="hidden lg:block">
-          <Image src={LOGO} alt="Logo" className="absolute top-4 left-4 h-30" />
+          <Image src={LOGO} alt="Logo" className="absolute top-4 left-5 h-35" />
           <button
             onClick={handleClick}
             className="absolute top-4 right-4 px-6 py-3 bg-white text-[#003893] font-semibold rounded-lg shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#003893]"
@@ -98,11 +105,22 @@ export default function Home() {
         <h2 className="text-[#003893] text-3xl font-bold mb-6 text-center">Negocios Destacados</h2>
         <div className="flex flex-col space-y-6 md:flex-row md:space-y-0 md:space-x-6 justify-center">
           {businesses.slice(0, 3).map((business) => (
-            <div key={business.id} className="bg-white p-6 rounded-lg shadow-lg w-full md:w-64 border border-[#FFD700]">
+            <div
+              key={business.id}
+              className="bg-white p-6 rounded-lg shadow-lg w-full md:w-64 border border-[#FFD700] cursor-pointer relative"
+              onClick={() => handleBusinessClick(business.id)}
+            >
+              {business.featured && (
+                <span className="absolute top-2 right-2 px-2 py-1 bg-yellow-200 text-yellow-800 text-xs font-semibold rounded-full">
+                  Destacado
+                </span>
+              )}
               {business.picture && (
                 <Image
                   src={business.picture}
                   alt={business.name}
+                  width={400}
+                  height={320}
                   className="w-full h-32 object-cover rounded-lg mb-4"
                 />
               )}
@@ -118,7 +136,7 @@ export default function Home() {
               </p>
               {business.website ? (
                 <a
-                  href={business.website}
+                  href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#003893] hover:underline"
@@ -135,16 +153,15 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-[#5682b0] to-[#121d2e] text-white py-4">
-  <div className="container mx-auto flex justify-center">
-    <button
-      onClick={handleClick}
-      className="ml-2 px-4 py-2 bg-[#FFD700] text-white font-semibold rounded-md hover:bg-blue-800"
-      >
-      Contáctanos
-    </button>
-  </div>
-</footer>
-
+        <div className="container mx-auto flex justify-center">
+          <button
+            onClick={handleClick}
+            className="ml-2 px-4 py-2 bg-[#FFD700] text-white font-semibold rounded-md hover:bg-blue-800"
+          >
+            Contáctanos
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

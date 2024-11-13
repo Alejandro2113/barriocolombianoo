@@ -1,3 +1,4 @@
+//search/page.js
 "use client";
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from "next/navigation";
@@ -81,6 +82,8 @@ function SearchResultsContent() {
               >
                 {business.picture && (
                   <Image
+                    width={400}
+                    height={350}
                     src={business.picture}
                     alt={business.name}
                     className="w-full h-48 object-cover"
@@ -103,12 +106,29 @@ function SearchResultsContent() {
                         {business.phoneNumber}
                       </p>
                     )}
-                    {business.whatsappNumber && (
-                      <p className="flex items-center text-gray-600">
-                        <MessageSquare size={16} className="mr-2 text-[#009347]" />
-                        {business.whatsappNumber}
-                      </p>
-                    )}
+                  {business.whatsappNumber && (
+  <p className="flex items-center">
+    <MessageSquare size={20} className="mr-3 text-green-600" />
+    <a
+      href={
+        business.whatsappNumber.startsWith("https://wa.me/")
+          ? business.whatsappNumber // Si ya es un link completo
+          : `https://wa.me/${business.whatsappNumber}` // Si es solo un número
+      }
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-green-600 hover:underline"
+    >
+      WhatsApp: {
+        business.whatsappNumber.startsWith("https://wa.me/")
+          ? business.whatsappNumber.replace("https://wa.me/", "") // Extrae el número si es un link
+          : business.whatsappNumber // Muestra el número si ya está en formato de número
+      }
+    </a>
+  </p>
+)}
+
+
                     {business.address && (
                       <p className="flex items-center text-gray-600">
                         <MapPin size={16} className="mr-2 text-[#003893]" />
@@ -128,9 +148,9 @@ function SearchResultsContent() {
                       </a>
                     )}
                     <div className="flex space-x-2">
-                      {business.website && (
+                    {business.website && (
                         <a
-                          href={business.website}
+                          href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-gray-600 hover:text-[#003893] transition duration-300"

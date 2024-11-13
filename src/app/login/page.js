@@ -33,7 +33,7 @@ export default function Login() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-sm p-8 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
+        <h2 className="text-black text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Correo Electrónico</label>

@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -22,18 +22,19 @@ model User {
 
 model Negocios {
   id                Int      @id @default(autoincrement())
-  name              String   // Nombre del negocio
-  picture           String?  // Foto del negocio (URL de la imagen)
-  description       String   // Descripción del negocio
-  phoneNumber       String?  // Número de teléfono
-  whatsappNumber    String?  // Número de WhatsApp
-  website           String?  // Dirección del sitio web
-  facebook          String?  // Cuenta de Facebook
-  instagram         String?  // Cuenta de Instagram
-  youtube           String?  // Cuenta de YouTube
-  category          String?  // Categoría
-  address           String?  // Dirección
-  googleMapsLink    String?  // Enlace de Google Maps (opcional, puede ser una URL completa)
-  createdAt DateTime @default(now())
-
+  name              String
+  picture           String?
+  description       String
+  phoneNumber       String?
+  whatsappNumber    String?
+  website           String?
+  facebook          String?
+  instagram         String?
+  youtube           String?
+  category          String?
+  address           String?
+  googleMapsLink    String?
+  featured          Boolean  @default(false) // Campo para negocio destacado
+  createdAt         DateTime @default(now())
 }
+

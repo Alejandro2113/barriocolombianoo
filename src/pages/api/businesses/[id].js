@@ -1,3 +1,4 @@
+// pages/api/businesses/[id].js
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

@@ -18,7 +18,7 @@ export default function Contactanos() {
           <h2 className="text-2xl font-bold mb-4">Contáctanos</h2>
           <p className="text-gray-700 mb-6">
             ¿Está interesado en promover su negocio colombiano en la comunidad latina de forma gratuita o tiene otra inquietud? 
-            Envíenos un correo electrónico a <a href="mailto:tuemail@gmail.com" className="text-blue-500 underline">tuemail@gmail.com</a>
+            Envíenos un correo electrónico a <a href="mailto:barriocolombianousa@gmail.com" className="text-blue-500 underline">barriocolombianousa@gmail.com</a>
           </p>
         </div>
       </div>

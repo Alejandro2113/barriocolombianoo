@@ -129,14 +129,14 @@ export default async function handler(req, res) {
         name: fields.name[0],
         picture: pictureUrl || undefined,
         description: fields.description[0],
-        phoneNumber: fields.phoneNumber[0],
+       
         whatsappNumber: fields.whatsappNumber[0],
         website: fields.website[0],
         facebook: fields.facebook[0],
         instagram: fields.instagram[0],
-        youtube: fields.youtube[0],
+        
         category: fields.category[0],
-        address: fields.address[0],
+        
         googleMapsLink: fields.googleMapsLink[0],
         featured: fields.featured ? fields.featured[0] === 'true' : false, // Asume que se envía como "true" o "false"
         

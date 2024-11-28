@@ -23,6 +23,7 @@ CREATE TABLE "Negocios" (
     "category" TEXT,
     "address" TEXT,
     "googleMapsLink" TEXT,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Negocios_pkey" PRIMARY KEY ("id")

@@ -23,6 +23,7 @@ model User {
 model Negocios {
   id                Int      @id @default(autoincrement())
   name              String
+  email       String   @unique @default("examples@example.com")
   picture           String?
   description       String
   phoneNumber       String?
@@ -37,5 +38,22 @@ model Negocios {
   featured          Boolean  @default(false) // Campo para negocio destacado
   createdAt         DateTime @default(now())
 }
+
+
+model Anuncios {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique @default("example@example.com")
+  picture     String?
+  description String
+  phone       String?
+  category    String?
+  city        String?
+  contact     String?
+  price       Float    @default(0.0)
+  createdAt   DateTime @default(now())
+}
+
+
 
 

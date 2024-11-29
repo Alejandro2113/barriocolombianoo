@@ -13,6 +13,10 @@ export default function Home() {
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [formType, setFormType] = useState('advertisement'); // 'business' or 'advertisement'
 
+  const [cityLocation, setCityLocation] = useState(null);
+  const [locationError, setLocationError] = useState('');
+
+
   const categories = [
     "Se Vende",
     "Empleo",
@@ -45,7 +49,7 @@ export default function Home() {
     contact: "",
     city: "", // Nuevo campo para ciudad
     price: "", // Nuevo campo para precio
-    
+
   });
 
   const scrollToTop = () => {
@@ -85,13 +89,66 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+
+  const detectCityLocation = async (cityName) => {
+    try {
+      // Reemplaza 'YOUR_GOOGLE_MAPS_API_KEY' con tu clave de API real
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=AIzaSyCEOpccOqRZyabXPVyYhF4hNxv_czaRz6E`
+      );
+      
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        const location = data.results[0].geometry.location;
+        const addressComponents = data.results[0].address_components;
+
+        // Extraer ciudad, región y país
+        const cityComponent = addressComponents.find(component => 
+          component.types.includes('locality')
+        );
+        const regionComponent = addressComponents.find(component => 
+          component.types.includes('administrative_area_level_1')
+        );
+        const countryComponent = addressComponents.find(component => 
+          component.types.includes('country')
+        );
+
+        const detectedLocation = {
+          city: cityComponent ? cityComponent.long_name : '',
+          region: regionComponent ? regionComponent.long_name : '',
+          country: countryComponent ? countryComponent.long_name : '',
+          latitude: location.lat,
+          longitude: location.lng
+        };
+
+        setCityLocation(detectedLocation);
+        setFormData(prev => ({
+          ...prev,
+          city: `${detectedLocation.city}, ${detectedLocation.region}, ${detectedLocation.country}`
+        }));
+        setLocationError('');
+      } else {
+        setLocationError('No se pudo encontrar la ubicación');
+        setCityLocation(null);
+      }
+    } catch (error) {
+      console.error('Error detectando ubicación:', error);
+      setLocationError('Error al detectar la ubicación');
+      setCityLocation(null);
+    }
+  };
+
+  
+
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  
+
     if (name === "category") {
       // Determina el tipo de formulario según la categoría seleccionada
       const advertisementCategories = [
@@ -104,16 +161,23 @@ export default function Home() {
         value === "Promover mi negocio"
           ? "business"
           : advertisementCategories.includes(value)
-          ? "advertisement"
-          : "other"
+            ? "advertisement"
+            : "other"
       );
+    }
+
+    if (name === 'city') {
+      // Iniciar detección de ubicación solo si hay suficientes caracteres
+      if (value.length > 2) {
+        detectCityLocation(value);
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const endpoint = formType === "business" ? "/api/businesses" : "/api/advertisements";
-  
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",
@@ -122,7 +186,7 @@ export default function Home() {
         },
         body: JSON.stringify(formData),
       });
-  
+
       if (response.ok) {
         alert(
           formType === "business"
@@ -147,8 +211,8 @@ export default function Home() {
           phone: "",
           contact: "",
           city: "",
-        price: "",
-        email: "",
+          price: "",
+          email: "",
         });
       } else {
         alert("Error al publicar.");
@@ -158,15 +222,15 @@ export default function Home() {
       alert("Ocurrió un error al publicar.");
     }
   };
-  
+
 
   // Continuación del componente Home...
 
   return (
     <div className="relative min-h-screen bg-gray-100 flex flex-col">
       {/* Header y otros elementos permanecen igual... */}
-       {/* Header */}
-       <div className="relative bg-gradient-to-r from-[#FFD700] to-[#003893]">
+      {/* Header */}
+      <div className="relative bg-gradient-to-r from-[#FFD700] to-[#003893]">
         <div className="container mx-auto px-4 py-4">
           {/* Logo */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
@@ -194,13 +258,13 @@ export default function Home() {
 
           {/* Publication Bar */}
           <div className="max-w-3xl mx-auto px-4 pb-4">
-  <button
-    className="w-full p-3 bg-white bg-opacity-90 rounded-lg text-gray-600 text-left hover:bg-opacity-100 transition-all duration-200 cursor-pointer shadow-sm border border-blue-500"
-    onClick={() => setIsModalOpen(true)}
-  >
-    Publica tu anuncio gratis aquí
-  </button>
-</div>
+            <button
+              className="w-full p-3 bg-white bg-opacity-90 rounded-lg text-gray-600 text-left hover:bg-opacity-100 transition-all duration-200 cursor-pointer shadow-sm border border-blue-500"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Publica tu anuncio gratis aquí
+            </button>
+          </div>
 
         </div>
       </div>
@@ -243,8 +307,8 @@ export default function Home() {
                 {formType === 'business' ? 'Publica tu Negocio' : 'Publica tu Anuncio'}
               </h2>
               <p className="text-base text-gray-600">
-                {formType === 'business' 
-                  ? '¡Haz crecer tu negocio en nuestra comunidad!' 
+                {formType === 'business'
+                  ? '¡Haz crecer tu negocio en nuestra comunidad!'
                   : '¡Comparte tu anuncio con la comunidad!'}
               </p>
             </div>
@@ -268,19 +332,19 @@ export default function Home() {
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">Categoría</label>
                 <select
-  name="category"
-  value={formData.category}
-  onChange={handleInputChange}
-  className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
-  required
->
-  <option value="">Selecciona una categoría</option>
-  {categories.map((category) => (
-    <option key={category} value={category}>
-      {category}
-    </option>
-  ))}
-</select>
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
+                  required
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2 col-span-2">
@@ -294,16 +358,16 @@ export default function Home() {
                 />
               </div>
               <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
-        required
-      />
-    </div>
+                <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
+                  required
+                />
+              </div>
 
               {/* Campos específicos para negocios */}
               {formType === 'business' && (
@@ -402,7 +466,7 @@ export default function Home() {
                         type="checkbox"
                         name="featured"
                         checked={formData.featured}
-                        onChange={(e) => setFormData(prev => ({...prev, featured: e.target.checked}))}
+                        onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
                         className="w-4 h-4"
                       />
                       <span className="text-sm text-gray-700">¿Destacar este negocio?</span>
@@ -436,30 +500,42 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Ciudad</label>
+    <label className="block text-sm font-medium text-gray-700">Ciudad</label>
+    <div>
       <input
         type="text"
         name="city"
         value={formData.city}
         onChange={handleInputChange}
+        placeholder="Escribe el nombre de tu ciudad"
         className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
-        required
       />
+      {cityLocation && (
+        <div className="mt-2 text-green-600">
+          Ubicación detectada: {cityLocation.city}, {cityLocation.region}, {cityLocation.country}
+        </div>
+      )}
+      {locationError && (
+        <div className="mt-2 text-red-600">
+          {locationError}
+        </div>
+      )}
     </div>
+  </div>
 
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Precio</label>
-      <input
-        type="text"
-        name="price"
-        value={formData.price}
-        onChange={handleInputChange}
-        className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
-        required
-      />
-    </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Precio</label>
+                    <input
+                      type="text"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      className="w-full p-2 rounded-lg border border-[#ddd] focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
+                      required
+                    />
+                  </div>
 
-    
+
                 </>
               )}
 
@@ -574,7 +650,7 @@ export default function Home() {
       <footer className="bg-gradient-to-r from-[#5682b0] to-[#121d2e] text-white mt-auto">
         <div className="container mx-auto px-4 py-4 flex justify-center">
           <button
-           
+
             className="px-4 py-2 bg-[#FFD700] text-white font-semibold rounded-md hover:bg-yellow-500"
           >
             Contáctanos

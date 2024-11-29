@@ -127,19 +127,19 @@ export default async function handler(req, res) {
 
       const businessData = {
         name: fields.name[0],
+        email: fields.email ? fields.email[0] : undefined,
         picture: pictureUrl || undefined,
         description: fields.description[0],
-       
-        whatsappNumber: fields.whatsappNumber[0],
-        website: fields.website[0],
-        facebook: fields.facebook[0],
-        instagram: fields.instagram[0],
-        
-        category: fields.category[0],
-        
-        googleMapsLink: fields.googleMapsLink[0],
-        featured: fields.featured ? fields.featured[0] === 'true' : false, // Asume que se envía como "true" o "false"
-        
+        phoneNumber: fields.phoneNumber ? fields.phoneNumber[0] : undefined,
+        whatsappNumber: fields.whatsappNumber ? fields.whatsappNumber[0] : undefined,
+        website: fields.website ? fields.website[0] : undefined,
+        facebook: fields.facebook ? fields.facebook[0] : undefined,
+        instagram: fields.instagram ? fields.instagram[0] : undefined,
+        youtube: fields.youtube ? fields.youtube[0] : undefined,
+        category: fields.category ? fields.category[0] : undefined,
+        address: fields.address ? fields.address[0] : undefined,
+        googleMapsLink: fields.googleMapsLink ? fields.googleMapsLink[0] : undefined,
+        featured: fields.featured ? fields.featured[0] === 'true' : false,
       };
 
       console.log("Datos del negocio a guardar:", businessData);
@@ -152,9 +152,12 @@ export default async function handler(req, res) {
         console.log("Actualizando negocio existente");
         const id = parseInt(fields.id[0]);
         const oldBusiness = await prisma.negocios.findUnique({ where: { id } });
-        if (oldBusiness && pictureUrl) {
+        
+        // If a new picture is uploaded, delete the old one from Cloudinary
+        if (oldBusiness && pictureUrl && oldBusiness.picture) {
           await deleteFromCloudinary(oldBusiness.picture);
         }
+        
         business = await prisma.negocios.update({
           where: { id },
           data: businessData,

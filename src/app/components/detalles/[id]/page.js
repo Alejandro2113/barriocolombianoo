@@ -1,3 +1,5 @@
+// app/components/detalles/[id]/page.js
+
 "use client";
 
 import { Suspense } from 'react';
